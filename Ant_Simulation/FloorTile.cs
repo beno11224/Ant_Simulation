@@ -9,11 +9,11 @@ namespace Ant_Simulation
 {
     class FloorTile
     {
-        public enum TileType { Blank, Home, Goal, Special }; //special tiles are child classes of FloorTile.
+        public enum TileType { Blank, Home, Goal, Special, Pheremone }; //special tiles are child classes of FloorTile.
 
         private TileType _tileType;
         private Color _colour;
-        private int _value;
+        private int _value; //TODO make this double?
         private int _maxValue;
 
         public FloorTile(TileType tileType)
@@ -38,12 +38,31 @@ namespace Ant_Simulation
                         _colour = Color.Green;
                         break;
                     }
+                case (TileType.Special):
+                    {
+                        _colour = Color.Orange; //TODO will this work??
+                        break;
+                    }
+                case (TileType.Pheremone):
+                    {
+                        _colour = Color.Blue;
+                        break;
+                    }
             }
         }
 
         public FloorTile(TileType tileType, int value) : this(tileType) //the "this:" at the end runs the above constructor too
         {
             _value = value;
+            if (tileType == TileType.Pheremone)
+            {
+                if (value > 255)
+                {
+                    throw new ArgumentException("Value of a pheremone cannot be greater than 255");
+                }
+
+                _colour = Color.FromArgb(100,100,value); //TODO is 100 a good value?
+            }
         }
 
         public FloorTile(TileType tileType, int value, int maxValue) : this(tileType, value) //the "this:" at the end runs the above constructor too

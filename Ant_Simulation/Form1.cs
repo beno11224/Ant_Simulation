@@ -100,7 +100,7 @@ namespace Ant_Simulation
 
                 foreach (Ant ant in _ants)
                 {
-                    Bitmap ant_vision = new Bitmap(3, 3);
+                    Bitmap ant_vision = new Bitmap(3, 3); //should ant_vision be an array of FloorTile? otherwise FloorTile seems pretty useless...
                     using (Graphics graphics = Graphics.FromImage(ant_vision))
                     {
                         graphics.Clear(Color.Red);

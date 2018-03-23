@@ -124,7 +124,7 @@ namespace Ant_Simulation
     class NormalAnt : Ant
     {
 
-        private bool carrying_gold = false;
+        private bool carrying_gold = true; //TODO change this to false
 
         public NormalAnt(Random random) : base(random)
         { }
@@ -142,10 +142,13 @@ namespace Ant_Simulation
             if (!carrying_gold)
             {
                 base.Move(antVision); //do any base move stuff... (//TODO decide how much we do in the base class)
+                //TODO test if they are on a goal tile, then set carrying_gold
             }
             else
             {
-
+                Pheremone ph = new Pheremone(_location, 250, 0.1);
+                //TODO add_pheremone event...
+                
                 //TODO follow pheremone trails
             }
 
@@ -162,6 +165,10 @@ namespace Ant_Simulation
 
         public Pheremone(Point location, int initialValue, double decayRate)
         {
+            if (initialValue > 255)
+            {
+                throw new ArgumentException("intialValue cannot be greater than 255");
+            }
             _location = location;
             _tile = new FloorTile(FloorTile.TileType.Special, initialValue, initialValue);
             _decayRate = decayRate;
