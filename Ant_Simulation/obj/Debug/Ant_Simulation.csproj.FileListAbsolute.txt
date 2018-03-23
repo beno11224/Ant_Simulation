@@ -1,0 +1,10 @@
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\obj\Debug\Ant_Simulation.csprojResolveAssemblyReference.cache
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\obj\Debug\Ant_Simulation.Properties.Resources.resources
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\obj\Debug\Ant_Simulation.csproj.GenerateResource.Cache
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\obj\Debug\Ant_Simulation.csproj.CoreCompileInputs.cache
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\bin\Debug\Ant_Simulation.exe.config
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\bin\Debug\Ant_Simulation.exe
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\bin\Debug\Ant_Simulation.pdb
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\obj\Debug\Ant_Simulation.exe
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\obj\Debug\Ant_Simulation.pdb
+D:\Coding Projects\VisualStudio\Ant_Simulation\Ant_Simulation\obj\Debug\Ant_Simulation.Form1.resources
