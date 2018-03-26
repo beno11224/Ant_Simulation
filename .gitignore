@@ -1,0 +1,12 @@
+
+.vs/Ant_Simulation/v15/.suo
+.vs/Ant_Simulation/v15/Server/sqlite3/storage.ide
+.vs/Ant_Simulation/v15/Server/sqlite3/storage.ide-shm
+.vs/Ant_Simulation/v15/Server/sqlite3/storage.ide-wal
+Ant_Simulation/bin/Debug/Ant_Simulation.pdb
+Ant_Simulation/obj/Debug/Ant_Simulation.exe
+Ant_Simulation/obj/Debug/Ant_Simulation.pdb
+*.exe
+*.ide-wal
+*.ide-shm
+*.ide

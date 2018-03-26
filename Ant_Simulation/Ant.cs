@@ -32,71 +32,7 @@ namespace Ant_Simulation
 
         public abstract Point GetLocation();
 
-        public virtual Action Move(Bitmap antVision) //TODO add in the drop pheremone into move when '4' is a pheremone tile. Also add in weighted randomisation for movement (weight based on tiles next to it)
-                                                   //so like a goal is a higher weight.
-        {
-            /*
-                antVision is 3*3 bitmap.
-                tile setup is as follows (numbers refer to array index):
-                _ _ _
-                |/ 1 /|
-                |0 4 3| //4 is always true
-                |/_2_/|
-             
-                */
-
-            List<bool> walkable_tiles_list = new List<bool>();
-            bool[] walkable_tiles;
-
-            int random_int = 0;
-
-            for (int x_count = 0; x_count < 3; x_count++)
-            {
-                for (int y_count = 0; y_count < 3; y_count++)
-                {
-                    if ((x_count + y_count) % 2 != 0)
-                    {
-                        walkable_tiles_list.Add(IsTileWalkable(antVision.GetPixel(x_count, y_count)));
-                    }
-                }
-            }
-
-            walkable_tiles_list.Add(true); //here to allow the ant to stay still (I think).
-            walkable_tiles = walkable_tiles_list.ToArray();
-
-            do
-            {
-                random_int = _random.Next(walkable_tiles.Length);
-            } while (walkable_tiles_list[random_int] == false);
-
-            switch (random_int)
-            {
-                case (0):
-                    {
-                        _location.X += -1;
-                        break;
-                    }
-                case (1):
-                    {
-                        _location.Y += -1;
-                        break;
-                    }
-                case (2):
-                    {
-                        _location.Y += 1;
-                        break;
-                    }
-                case (3):
-                    {
-                        _location.X += 1;
-                        break;
-                    }
-            }
-
-            return Action.None;
-        }
-
-        //TODO add in a create pheremone function...
+        public abstract Action Move(Bitmap antVision);
 
         public bool IsTileWalkable(Color colour)
         {
@@ -141,28 +77,116 @@ namespace Ant_Simulation
             return _location;
         }
 
-        public override Action Move(Bitmap antVision)
-        {
-            if (!carrying_gold)
-            {
-                Action action = base.Move(antVision); //do any base move stuff... (//TODO decide how much we do in the base class)
 
-                //TODO test if they are on a goal tile, then set carrying_gold
-                if (generic_floortile.GetTileTypeFromColour(antVision.GetPixel(1, 1)) == FloorTile.TileType.Goal)
+        public override Action Move(Bitmap antVision) //TODO add in weighted randomisation for movement (weight based on tiles next to it) so like a goal is a higher weight.
+        {
+            /*
+            antVision is 3*3 bitmap.
+            tile setup is as follows (numbers refer to array index):
+            _ _ _
+            |/ 1 /|
+            |0 4 3| //4 is always walkable (unless code is very broken)
+            |/_2_/|
+             
+            */
+
+        FloorTile.TileType best_tile = FloorTile.TileType.Blank;
+
+        List<bool> walkable_tiles_list = new List<bool>();
+        bool[] walkable_tiles;
+
+        int random_int = 0;
+
+            for (int x_count = 0; x_count< 3; x_count++)
+            {
+                for (int y_count = 0; y_count< 3; y_count++)
                 {
-                    carrying_gold = true;
-                    action = Action.DropPheremone;
+                    if ((x_count + y_count) % 2 != 0)
+                    {
+                        switch (generic_floortile.GetTileTypeFromColour(antVision.GetPixel(x_count, y_count)))
+                        {
+                            default: //TODO decide what walk to do for base ant 
+                            {
+                                walkable_tiles_list.Add(IsTileWalkable(antVision.GetPixel(x_count, y_count)));
+                                break;
+                            }
+
+                            case (FloorTile.TileType.Pheremone): //TODO could I use red-value to determine how many pheremones are on that tile? (100 levels would be enough)...
+                            {
+                                    walkable_tiles_list.Add(IsTileWalkable(antVision.GetPixel(x_count, y_count)));
+                                    break;
+                            }
+
+                            case (FloorTile.TileType.Goal):
+                            {
+                                if (!carrying_gold)
+                                {
+                                    walkable_tiles_list.Add(IsTileWalkable(antVision.GetPixel(x_count, y_count)));
+                                    carrying_gold = true;
+                                }
+                                break;
+                            }
+
+                            case (FloorTile.TileType.Home):
+                            {
+                                if (carrying_gold)
+                                {
+                                    walkable_tiles_list.Add(IsTileWalkable(antVision.GetPixel(x_count, y_count)));
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            walkable_tiles_list.Add(true); //here to allow the ant to stay still (and to do things with the tile it is standing on)
+            walkable_tiles = walkable_tiles_list.ToArray();
+
+            do
+            {
+                random_int = _random.Next(walkable_tiles.Length);
+            } while (walkable_tiles_list[random_int] == false);
+
+            switch (random_int)
+            {
+                case (0):
+                    {
+                        _location.X += -1;
+                        break;
+                    }
+                case (1):
+                    {
+                        _location.Y += -1;
+                        break;
+                    }
+                case (2):
+                    {
+                        _location.Y += 1;
+                        break;
+                    }
+                case (3):
+                    {
+                        _location.X += 1;
+                        break;
+                    }
+            }
+
+            if (carrying_gold)
+            {
+                if ( generic_floortile.GetTileTypeFromColour(antVision.GetPixel(1,1)) == FloorTile.TileType.Home )
+                {
+                    //TODO pass ant_vision as array of FloorTile. Pass by reference to allow for ant editing tiles.
+                    //TODO increment home tile.
+                    carrying_gold = false;
                 }
 
-                return action;
+                return Action.DropPheremone;
             }
             else
             {
-                base.Move(antVision); //TODO change
-                //TODO follow pheremone trails
-                return Action.DropPheremone;
+                return Action.None;
             }
-
         }
     }
 
@@ -183,7 +207,6 @@ namespace Ant_Simulation
             _tile = new FloorTile(FloorTile.TileType.Special, initialValue, initialValue);
             _decayRate = decayRate;
         }
-        //TODO find a way of decrementing all tiles correctly...
 
         public double GetValue()
         {
@@ -195,7 +218,7 @@ namespace Ant_Simulation
             return _location;
         }
 
-        public void Decay() //should only be called once (and only once) per step. //TODO is there a way to enforce this?
+        public void Decay() //should only be called once (and only once) per step.
         {
             _current_value *= _decayRate;
         }
