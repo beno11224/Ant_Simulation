@@ -100,18 +100,63 @@ namespace Ant_Simulation
 
                 foreach (Ant ant in _ants)
                 {
-                    Bitmap ant_vision = new Bitmap(3, 3); //should ant_vision be an array of FloorTile? otherwise FloorTile seems pretty useless...
-                    //FloorTile[] ant_vision = new FloorTile[5];
-                    using (Graphics graphics = Graphics.FromImage(ant_vision))
+                    FloorTile[] ant_vision = new FloorTile[5];
+
+                    Point current_location = ant._location;
+
+                    if (current_location.X > 1)
                     {
-                        graphics.Clear(Color.Red);
-                        graphics.DrawImage(image: _gameBoard.ToBitmap(),
-                            destRect: new Rectangle(0, 0, 3, 3),
-                            srcRect: new Rectangle((ant.GetLocation().X - 1), (ant.GetLocation().Y - 1), 3, 3),
-                            srcUnit: GraphicsUnit.Pixel);
-                        //I can use -1 as the left-most pixel of the board is 1,1
+                        ant_vision[0] = _gameBoard.GetTileAtLocation(current_location.X - 1, current_location.Y);
                     }
-                    Ant.Action ant_action = ant.Move(ant_vision);
+                    else
+                    {
+                        ant_vision[0] = null;
+                    }
+
+                    if (current_location.X < _gameBoard.GetWidth() - 1)//width - 1 is correct or is it -2?
+                    {
+                        ant_vision[3] = _gameBoard.GetTileAtLocation(current_location.X + 1, current_location.Y); 
+                    }
+                    else
+                    {
+                        ant_vision[3] = null;
+                    }
+
+                    if (current_location.Y > 1)
+                    {
+                        ant_vision[1] = _gameBoard.GetTileAtLocation(current_location.X , current_location.Y - 1);
+                    }
+                    else
+                    {
+                        ant_vision[1] = null;
+                    }
+
+                    if (current_location.Y > _gameBoard.GetHeight() - 1)
+                    {
+                        ant_vision[2] = _gameBoard.GetTileAtLocation(current_location.X, current_location.Y + 1);
+                    }
+                    else
+                    {
+                        ant_vision[2] = null;
+                    }
+
+                    ant_vision[4] = _gameBoard.GetTileAtLocation(current_location.X, current_location.Y); //central tile
+
+
+                    //Bitmap ant_vision = new Bitmap(3, 3); //should ant_vision be an array of FloorTile? otherwise FloorTile seems pretty useless...
+                    //using (Graphics graphics = Graphics.FromImage(ant_vision))
+                    //{
+                    //    graphics.Clear(Color.Red);
+                    //    graphics.DrawImage(image: _gameBoard.ToBitmap(),
+                    //       destRect: new Rectangle(0, 0, 3, 3),
+                    //        srcRect: new Rectangle((ant.GetLocation().X - 1), (ant.GetLocation().Y - 1), 3, 3),
+                    //        srcUnit: GraphicsUnit.Pixel);
+                    //    //I can use -1 as the left-most pixel of the board is 1,1
+                    //}
+
+
+
+                    Ant.Action ant_action = ant.Move(ant_vision); //TODO change ant_vision to array...
                     Point location = ant.GetLocation();
 
                     switch (ant_action)

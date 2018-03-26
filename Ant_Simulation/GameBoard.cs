@@ -156,6 +156,21 @@ namespace Ant_Simulation
             return result;
         }
 
+        public FloorTile GetTileAtLocation(int x, int y)
+        {
+            return _board[x, y]; //TODO throw exceptions?
+        }
+
+        public int GetWidth()
+        {
+            return _board.GetLength(0);
+        }
+
+        public int GetHeight()
+        {
+            return _board.GetLength(1);
+        }
+
         public void addPheremone(Pheremone pheremone)
         {
             _board[pheremone.GetLocation().X, pheremone.GetLocation().Y] = new FloorTile(FloorTile.TileType.Pheremone, 255, 0.9); //TODO magic number?

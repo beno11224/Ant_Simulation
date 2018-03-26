@@ -32,7 +32,7 @@ namespace Ant_Simulation
 
         public abstract Point GetLocation();
 
-        public abstract Action Move(Bitmap antVision);
+        public abstract Action Move(FloorTile[] antVision);
 
         public bool IsTileWalkable(Color colour)
         {
@@ -78,7 +78,7 @@ namespace Ant_Simulation
         }
 
 
-        public override Action Move(Bitmap antVision) //TODO add in weighted randomisation for movement (weight based on tiles next to it) so like a goal is a higher weight.
+        public override Action Move(FloorTile[] antVision) //TODO add in weighted randomisation for movement (weight based on tiles next to it) so like a goal is a higher weight.
         {
             /*
             antVision is 3*3 bitmap.
@@ -97,7 +97,7 @@ namespace Ant_Simulation
 
         int random_int = 0;
 
-            for (int x_count = 0; x_count< 3; x_count++)
+            for (int x_count = 0; x_count< 3; x_count++) //TODO change this...
             {
                 for (int y_count = 0; y_count< 3; y_count++)
                 {
