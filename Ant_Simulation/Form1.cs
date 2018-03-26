@@ -13,7 +13,7 @@ namespace Ant_Simulation
     public partial class Form1 : Form
     {
         GameBoard _gameBoard;
-        NormalAnt[] _ants = new NormalAnt[10]; //change this value to change the number of ants
+        NormalAnt[] _ants = new NormalAnt[1]; //change this value to change the number of ants
 
         Random _random = new Random();
 
@@ -101,6 +101,7 @@ namespace Ant_Simulation
                 foreach (Ant ant in _ants)
                 {
                     Bitmap ant_vision = new Bitmap(3, 3); //should ant_vision be an array of FloorTile? otherwise FloorTile seems pretty useless...
+                    //FloorTile[] ant_vision = new FloorTile[5];
                     using (Graphics graphics = Graphics.FromImage(ant_vision))
                     {
                         graphics.Clear(Color.Red);
@@ -110,9 +111,28 @@ namespace Ant_Simulation
                             srcUnit: GraphicsUnit.Pixel);
                         //I can use -1 as the left-most pixel of the board is 1,1
                     }
-                    ant.Move(ant_vision);
+                    Ant.Action ant_action = ant.Move(ant_vision);
                     Point location = ant.GetLocation();
-                    board.SetPixel(location.X, location.Y, Color.Black);
+
+                    switch (ant_action)
+                    {
+                        default: //or Action.None
+                            {
+                                break;
+                            }
+
+                        case (Ant.Action.DropPheremone):
+                            {
+                                Point pheremone_location = location;
+                                pheremone_location.X--;
+                                pheremone_location.Y--;
+                                Pheremone ph = new Pheremone(pheremone_location,255,0.5); //TODO work out if there is a better way to do this.
+                                _gameBoard.addPheremone(ph);
+                                break;
+                            }
+                    }
+                    
+                    board.SetPixel(location.X, location.Y, Color.Purple);
                 }
 
                 PictureBox.Image = ResizeBitmapToPictureBox(board);

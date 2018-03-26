@@ -17,6 +17,8 @@ namespace Ant_Simulation
 
         public FloorTile generic_floortile = new FloorTile(FloorTile.TileType.Blank);
 
+        public enum Action { None, DropPheremone }; //TODO add more actions here?
+
         public Ant(Random rand)
         {
             _random = rand;
@@ -30,7 +32,7 @@ namespace Ant_Simulation
 
         public abstract Point GetLocation();
 
-        public virtual void Move(Bitmap antVision) //TODO add in the drop pheremone into move when '4' is a pheremone tile. Also add in weighted randomisation for movement (weight based on tiles next to it)
+        public virtual Action Move(Bitmap antVision) //TODO add in the drop pheremone into move when '4' is a pheremone tile. Also add in weighted randomisation for movement (weight based on tiles next to it)
                                                    //so like a goal is a higher weight.
         {
             /*
@@ -90,6 +92,8 @@ namespace Ant_Simulation
                         break;
                     }
             }
+
+            return Action.None;
         }
 
         //TODO add in a create pheremone function...
@@ -124,7 +128,7 @@ namespace Ant_Simulation
     class NormalAnt : Ant
     {
 
-        private bool carrying_gold = true; //TODO change this to false
+        private bool carrying_gold = false; //TODO change this to false
 
         public NormalAnt(Random random) : base(random)
         { }
@@ -137,19 +141,26 @@ namespace Ant_Simulation
             return _location;
         }
 
-        public override void Move(Bitmap antVision)
+        public override Action Move(Bitmap antVision)
         {
             if (!carrying_gold)
             {
-                base.Move(antVision); //do any base move stuff... (//TODO decide how much we do in the base class)
+                Action action = base.Move(antVision); //do any base move stuff... (//TODO decide how much we do in the base class)
+
                 //TODO test if they are on a goal tile, then set carrying_gold
+                if (generic_floortile.GetTileTypeFromColour(antVision.GetPixel(1, 1)) == FloorTile.TileType.Goal)
+                {
+                    carrying_gold = true;
+                    action = Action.DropPheremone;
+                }
+
+                return action;
             }
             else
             {
-                Pheremone ph = new Pheremone(_location, 250, 0.1);
-                //TODO add_pheremone event...
-                
+                base.Move(antVision); //TODO change
                 //TODO follow pheremone trails
+                return Action.DropPheremone;
             }
 
         }
@@ -161,7 +172,6 @@ namespace Ant_Simulation
         private Point _location;
         private double _decayRate;
         private double _current_value;
-        private int lifeSpan = 0; //lifespan always = 0; // TODO why did I write this?
 
         public Pheremone(Point location, int initialValue, double decayRate)
         {
@@ -178,6 +188,11 @@ namespace Ant_Simulation
         public double GetValue()
         {
             return _current_value;
+        }
+
+        public Point GetLocation()
+        {
+            return _location;
         }
 
         public void Decay() //should only be called once (and only once) per step. //TODO is there a way to enforce this?

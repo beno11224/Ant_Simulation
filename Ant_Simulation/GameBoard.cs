@@ -16,7 +16,7 @@ namespace Ant_Simulation
 
         private Rectangle _homeSquare;
         private Point[] _goals;
-        private List<Pheremone> _pheremones = new List<Pheremone>();
+        //private List<Point> _pheremone_locations = new List<Point>();
 
         private Random _random;
 
@@ -115,9 +115,28 @@ namespace Ant_Simulation
             {
                 int home_score = GetHomeSquareValue();
                 //TODO - here decrement any decrementable tiles
-                foreach (Pheremone pheremone in _pheremones)
+                for (int x_count = 0; x_count < _board.GetLength(0); x_count++)
                 {
-                    pheremone.Decay();
+                    for (int y_count = 0; y_count < _board.GetLength(1); y_count++)
+                    {
+                        FloorTile current_tile = _board[x_count, y_count];
+                        switch(current_tile.GetTileType())
+                        {
+                            case (FloorTile.TileType.Pheremone):
+                                {
+                                    if (!_board[x_count, y_count].ModifyValue())
+                                    {
+                                        _board[x_count, y_count] = new FloorTile(FloorTile.TileType.Blank);
+                                    }
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                        }
+                        
+                    }
                 }
             }
         }
@@ -139,7 +158,8 @@ namespace Ant_Simulation
 
         public void addPheremone(Pheremone pheremone)
         {
-            _pheremones.Add(pheremone);
+            _board[pheremone.GetLocation().X, pheremone.GetLocation().Y] = new FloorTile(FloorTile.TileType.Pheremone, 255, 0.9); //TODO magic number?
+            //_pheremone_locations.Add(pheremone.GetLocation());
         }
     }
 }

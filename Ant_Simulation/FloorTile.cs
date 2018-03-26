@@ -15,6 +15,7 @@ namespace Ant_Simulation
         private Color _colour;
         private int _value; //TODO make this double?
         private int _maxValue;
+        private double _modifer;
 
         public FloorTile(TileType tileType)
         {
@@ -70,6 +71,11 @@ namespace Ant_Simulation
             _maxValue = maxValue;
         }
 
+        public FloorTile(TileType tileType, int value, double modifier) : this(tileType, value)
+        {
+            _modifer = modifier;
+        }
+
         public int GetValue()
         {
             return _value;
@@ -94,7 +100,7 @@ namespace Ant_Simulation
                     }
                 default:
                     {
-                        if (colour.R == 2 && colour.G == 2) //determine what colour a pheremone is (data is stored in the blue value of the pheremone)
+                        if (colour.R == 100 && colour.G == 100) //determine what colour a pheremone is (data is stored in the blue value of the pheremone)
                         {
                             return TileType.Special;
                         }
@@ -118,6 +124,22 @@ namespace Ant_Simulation
                 _value = result;
                 return true;
             }
+        }
+
+        public bool ModifyValue()
+        {
+            double temp_value = (double) _value * _modifer;
+            _value = (int)temp_value;
+
+            if (_value < 25)
+            {
+                return false; //colour is now 'black'
+            }
+
+            int colour_int = (_value > 255)? 255 : _value;
+
+            _colour = Color.FromArgb(0,0,colour_int);
+            return true;
         }
 
         public Color GetColour()
