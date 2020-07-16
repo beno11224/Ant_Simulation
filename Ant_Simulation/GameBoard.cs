@@ -9,42 +9,49 @@ namespace Ant_Simulation
 {
     class GameBoard
     {
-        private FloorTile[,] _board;
+        public ControlClass _control;
+
+        private FloorTile[,] _board; //THIS is stored as (X,Y)
+        private List<Pheremone>[,] _pheremone_locations;
 
         private int _minGoalScore = 10;
         private int _maxGoalScore = 30;
 
         private Rectangle _homeSquare;
         private Point[] _goals;
-        //private List<Point> _pheremone_locations = new List<Point>();
-
+        
         private Random _random;
 
         #region Constructors
 
-        public GameBoard(Random random, int width, int height, Rectangle homeSquareRect)
+        public GameBoard(ControlClass control, Random random, int width, int height, Rectangle homeSquareRect)
         {
+            _control = control;
             _random = random;
 
             _board = new FloorTile[width, height];
+            _pheremone_locations = new List<Pheremone>[width,height];
             _homeSquare = homeSquareRect;
 
             for (int width_count = 0; width_count < width; width_count++)
             {
                 for (int height_count = 0; height_count < height; height_count++)
-                    _board[width_count, height_count] = new FloorTile(FloorTile.TileType.Blank);
+                {
+                    _board[width_count, height_count] = new FloorTile(_control, FloorTile.TileType.Blank);
+                    _pheremone_locations[width_count, height_count] = new List<Pheremone>();
+                }
             }
 
             for (int home_square_width_count = 0; home_square_width_count < homeSquareRect.Width; home_square_width_count++)
             {
                 for (int home_square_height_count = 0; home_square_height_count < homeSquareRect.Height; home_square_height_count++)
                 {
-                    _board[home_square_width_count + homeSquareRect.X, home_square_height_count + homeSquareRect.Y] = new FloorTile(FloorTile.TileType.Home, 10); //TODO remove magic number
+                    _board[home_square_width_count + homeSquareRect.X, home_square_height_count + homeSquareRect.Y] = new FloorTile(_control, FloorTile.TileType.Home, 10); //TODO remove magic number
                 }
             }
         }
 
-        public GameBoard(Random random, int width, int height, Rectangle homeSquareRect, int numberOfGoalLocations) : this(random, width, height, homeSquareRect)
+        public GameBoard(ControlClass control, Random random, int width, int height, Rectangle homeSquareRect, int numberOfGoalLocations) : this(control, random, width, height, homeSquareRect)
         {
             _goals = new Point[numberOfGoalLocations];
 
@@ -64,52 +71,68 @@ namespace Ant_Simulation
                     board_y < (_homeSquare.Y + _homeSquare.Width));
                 //While loop stops goals spawning in home_square
 
-                _board[board_x, board_y] = new FloorTile(FloorTile.TileType.Goal, value: _random.Next(_minGoalScore, _maxGoalScore));
+                _board[board_x, board_y] = new FloorTile(_control, FloorTile.TileType.Goal, value: _random.Next(_minGoalScore, _maxGoalScore));
 
                 _goals[goal_count] = new Point(board_x, board_y);
             }
         }
 
-        public GameBoard(Random random, int width, int height, Rectangle homeSquareRect, Point[] goalLocations) : this(random, width, height, homeSquareRect)
+        public GameBoard(ControlClass control, Random random, int width, int height, Rectangle homeSquareRect, Point[] goalLocations) : this(control, random, width, height, homeSquareRect)
         {
             _goals = goalLocations;
 
             foreach (Point goal_location in goalLocations)
             {
-                _board[goal_location.X, goal_location.Y] = new FloorTile(FloorTile.TileType.Goal, value: _random.Next(_maxGoalScore, _maxGoalScore));
+                _board[goal_location.X, goal_location.Y] = new FloorTile(_control, FloorTile.TileType.Goal, value: _random.Next(_maxGoalScore, _maxGoalScore));
             }
         }
 
         #endregion
 
-        public Bitmap ToBitmap()
+        public Bitmap ToBitmap() //returns bitmap of CORRECT size - add border later on in code.
         {
             int width = _board.GetLength(0);
             int height = _board.GetLength(1);
-            Bitmap result = new Bitmap(width + 2, height + 2);
-
-            using (Graphics g = Graphics.FromImage(result))
-            {
-                g.Clear(Color.Black);
-            }
+            Bitmap result = new Bitmap(width, height);
 
             for (int board_width_count = 0; board_width_count < width; board_width_count++)
             {
                 for (int board_height_count = 0; board_height_count < height; board_height_count++)
                 {
-                    result.SetPixel((board_width_count + 1), (board_height_count + 1), _board[board_width_count, board_height_count].GetColour());
+                    List<Pheremone> pheremones = GetPheremonesAtLocation(board_width_count, board_height_count);
+                    
+                    if (false == (pheremones == null || pheremones.Count == 0))
+                    {
+                        double current_max = 0;
+                        int current_index = 0;
+                        for (int pheremone_count = 0; pheremone_count < pheremones.Count; pheremone_count++)
+                        {
+                            //TODO decide if using the 'newest' pheremone or using a scaled sum of all the pheremones
+                            //if using scaled sum saturation may be an issue
+                            //newest
+                            if (current_max < pheremones[pheremone_count].GetValue())
+                            {
+                                current_max = pheremones[pheremone_count].GetValue();
+                                current_index = pheremone_count;
+                            }                            
+                        }
+                        //draw the pheremone.
+                        result.SetPixel((board_width_count), (board_height_count), pheremones[current_index].GetColour());//TODO need to look at multiple pheremones
+                    }
+                    else
+                    {
+                        //draw as a normal tile
+                        result.SetPixel((board_width_count), (board_height_count), _board[board_width_count, board_height_count].GetColour());
+                    }
                 }
             }
 
+            //TODO call EVENT to draw anything else here
+
             return result;
-        }
+        }    
 
-        public void Step()
-        {
-            Step(1);
-        }
-
-        public void Step(int numberOfSteps)
+        public void Step(int numberOfSteps) //TODO Move into FloorTile and use events!
         {
             for (int step_count = 0; step_count < numberOfSteps; step_count++)
             {
@@ -126,7 +149,7 @@ namespace Ant_Simulation
                                 {
                                     if (!_board[x_count, y_count].ModifyValue())
                                     {
-                                        _board[x_count, y_count] = new FloorTile(FloorTile.TileType.Blank);
+                                        _board[x_count, y_count] = new FloorTile(_control, FloorTile.TileType.Blank);
                                     }
                                     break;
                                 }
@@ -158,7 +181,26 @@ namespace Ant_Simulation
 
         public FloorTile GetTileAtLocation(int x, int y)
         {
-            return _board[x, y]; //TODO throw exceptions?
+            try
+            {
+                return _board[x, y];
+            }
+            catch ( IndexOutOfRangeException )
+            {
+                return null;
+            }
+        }
+
+        public List<Pheremone> GetPheremonesAtLocation(int x, int y)
+        {
+            try
+            {
+                return _pheremone_locations[x, y];
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return null;
+            }
         }
 
         public int GetWidth()
@@ -173,8 +215,7 @@ namespace Ant_Simulation
 
         public void addPheremone(Pheremone pheremone)
         {
-            _board[pheremone.GetLocation().X, pheremone.GetLocation().Y] = new FloorTile(FloorTile.TileType.Pheremone, 255, 0.9); //TODO magic number?
-            //_pheremone_locations.Add(pheremone.GetLocation());
+            _pheremone_locations[pheremone.GetLocation().X, pheremone.GetLocation().Y].Add(pheremone);
         }
     }
 }

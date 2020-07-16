@@ -9,7 +9,9 @@ namespace Ant_Simulation
 {
     class FloorTile
     {
-        public enum TileType { Blank, Home, Goal, Special, Pheremone }; //special tiles are child classes of FloorTile.
+        public enum TileType { Null, Blank, Home, Goal, Special, Pheremone }; //special tiles are child classes of FloorTile.
+
+        public ControlClass _control;
 
         private TileType _tileType;
         private Color _colour;
@@ -17,8 +19,12 @@ namespace Ant_Simulation
         private int _maxValue;
         private double _modifer;
 
-        public FloorTile(TileType tileType)
+        public FloorTile(ControlClass control, TileType tileType)
         {
+            _control = control;
+
+            //_control.BoardStepped += Decay(); //TODO
+
             _tileType = tileType;
             _value = 0;
 
@@ -52,7 +58,14 @@ namespace Ant_Simulation
             }
         }
 
-        public FloorTile(TileType tileType, int value) : this(tileType) //the "this:" at the end runs the above constructor too
+        
+
+        public void Decay(object sender, GameBoardSteppedEventArgs e)
+        {
+
+        }
+
+        public FloorTile(ControlClass control, TileType tileType, int value) : this(control, tileType) //the "this:" at the end runs the above constructor too
         {
             _value = value;
             if (tileType == TileType.Pheremone)
@@ -62,16 +75,16 @@ namespace Ant_Simulation
                     throw new ArgumentException("Value of a pheremone cannot be greater than 255");
                 }
 
-                _colour = Color.FromArgb(100,100,value); //TODO is 100 a good value?
+                _colour = Color.FromArgb(100,100,value);
             }
         }
 
-        public FloorTile(TileType tileType, int value, int maxValue) : this(tileType, value) //the "this:" at the end runs the above constructor too
+        public FloorTile(ControlClass control, TileType tileType, int value, int maxValue) : this(control, tileType, value) //the "this:" at the end runs the above constructor too
         {
             _maxValue = maxValue;
         }
 
-        public FloorTile(TileType tileType, int value, double modifier) : this(tileType, value)
+        public FloorTile(ControlClass control, TileType tileType, int value, double modifier) : this(control, tileType, value)
         {
             _modifer = modifier;
         }

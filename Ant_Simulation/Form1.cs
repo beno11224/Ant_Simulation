@@ -12,59 +12,56 @@ namespace Ant_Simulation
 {
     public partial class Form1 : Form
     {
-        GameBoard _gameBoard;
-        NormalAnt[] _ants = new NormalAnt[1]; //change this value to change the number of ants
+        ControlClass _control;
 
-        Random _random = new Random();
+        public int _numberOfNormalAnts = 5;
 
+        public int _boardWidth = 20;
+        public int _boardHeight = 20;
+        public int _goalTiles = 20;
 
         public Form1()
         {
             InitializeComponent();
 
-            _gameBoard = new GameBoard(_random, width: 20, height: 20, homeSquareRect: new Rectangle(10, 10, 3, 5), numberOfGoalLocations: 5);
-            for (int ant_count = 0; ant_count < _ants.Length; ant_count++)
-            {
-                _ants[ant_count] = new NormalAnt(_random);
-            }
+            _control = new ControlClass(_numberOfNormalAnts); //TODO get from correct bit of UI
+
+            _control.BoardStepped += _control_BoardStepped;
+        }
+
+        private void _control_BoardStepped(object sender, GameBoardSteppedEventArgs e)
+        {
+            UpdateGameBoardView(e.Board);
         }
 
         #region Image-Based
 
-        private Bitmap ResizeBitmapToPictureBox(Bitmap inputBitmap)
+        public void UpdateGameBoardView(Bitmap board)
         {
-            return ResizeBitmapToPictureBox(inputBitmap, keepAspectRatio: true);
+            GameBoardBox.Image = ResizeBitmapToPictureBox(board);
+            GameBoardBox.Refresh();
         }
 
-        private Bitmap ResizeBitmapToPictureBox(Bitmap inputBitmap, bool keepAspectRatio)
+        private Bitmap ResizeBitmapToPictureBox(Bitmap inputBitmap) //always keeps aspect ratio and adds border
         {
-            Bitmap result = new Bitmap(PictureBox.Width, PictureBox.Height);
+            int border_width = 1; //always 1 'pixel' thick.
 
-            int width;
-            int height;
-            int x_offset;
-            int y_offset;
+            double adjusted_input_width = inputBitmap.Width + border_width * 2;
+            double adjusted_input_height = inputBitmap.Height + border_width * 2;
 
-            if (keepAspectRatio)
-            {
-                double width_ratio = (double)inputBitmap.Width / (double)result.Width;
-                double height_ratio = (double)inputBitmap.Height / (double)result.Height;
-                double scale_ratio = (width_ratio > height_ratio) ? width_ratio : height_ratio;
-                width = (int)((double)inputBitmap.Width / scale_ratio);
-                height = (int)((double)inputBitmap.Height / scale_ratio);
-                x_offset = (result.Width - width) / 2;
-                y_offset = (result.Height - height) / 2;
-            }
-            else
-            {
-                width = result.Width;
-                height = result.Height;
-                x_offset = 0;
-                y_offset = 0;
-            }
+            Bitmap result = new Bitmap(GameBoardBox.Width , GameBoardBox.Height );
+
+            double width_ratio = adjusted_input_width/ (double)result.Width;
+            double height_ratio = adjusted_input_height / (double)result.Height;
+            double scale_ratio = (width_ratio > height_ratio) ? width_ratio : height_ratio;
+            int width = (int)(adjusted_input_width / scale_ratio);
+            int height = (int)(adjusted_input_height / scale_ratio);
+            int x_offset = (result.Width - width) / 2;
+            int y_offset = (result.Height - height) / 2;
 
             using (Graphics graphics = Graphics.FromImage(result))
             {
+                graphics.Clear(Color.Black);
                 graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 graphics.DrawImage(inputBitmap, new Rectangle(x_offset, y_offset, width, height));
             }
@@ -74,117 +71,33 @@ namespace Ant_Simulation
 
         #endregion
 
-        #region Event-Based
-
-        private void Step_Click(object sender, EventArgs e)
+        #region Movement
+       
+        public void Step_Click_1(object sender, EventArgs e)
         {
-            StepXTimes(steps: 1);
+            _control.Step(steps: 1);
         }
 
-        private void FiveStep_Click(object sender, EventArgs e)
+        public void Step5_Click(object sender, EventArgs e)
         {
-            StepXTimes(steps: 5);
+            _control.Step(steps: 5);
         }
 
-        private void TenStep_Click(object sender, EventArgs e)
+        public void Step10_Click(object sender, EventArgs e)
         {
-            StepXTimes(steps: 10);
-        }
-
-        private void StepXTimes(int steps)
-        {
-            for (int count = 0; count < steps; count++)
-            {
-                _gameBoard.Step(1);
-                Bitmap board = _gameBoard.ToBitmap();
-
-                foreach (Ant ant in _ants)
-                {
-                    FloorTile[] ant_vision = new FloorTile[5];
-
-                    Point current_location = ant._location;
-
-                    if (current_location.X > 1)
-                    {
-                        ant_vision[0] = _gameBoard.GetTileAtLocation(current_location.X - 1, current_location.Y);
-                    }
-                    else
-                    {
-                        ant_vision[0] = null;
-                    }
-
-                    if (current_location.X < _gameBoard.GetWidth() - 1)//width - 1 is correct or is it -2?
-                    {
-                        ant_vision[3] = _gameBoard.GetTileAtLocation(current_location.X + 1, current_location.Y); 
-                    }
-                    else
-                    {
-                        ant_vision[3] = null;
-                    }
-
-                    if (current_location.Y > 1)
-                    {
-                        ant_vision[1] = _gameBoard.GetTileAtLocation(current_location.X , current_location.Y - 1);
-                    }
-                    else
-                    {
-                        ant_vision[1] = null;
-                    }
-
-                    if (current_location.Y > _gameBoard.GetHeight() - 1)
-                    {
-                        ant_vision[2] = _gameBoard.GetTileAtLocation(current_location.X, current_location.Y + 1);
-                    }
-                    else
-                    {
-                        ant_vision[2] = null;
-                    }
-
-                    ant_vision[4] = _gameBoard.GetTileAtLocation(current_location.X, current_location.Y); //central tile
-
-
-                    //Bitmap ant_vision = new Bitmap(3, 3); //should ant_vision be an array of FloorTile? otherwise FloorTile seems pretty useless...
-                    //using (Graphics graphics = Graphics.FromImage(ant_vision))
-                    //{
-                    //    graphics.Clear(Color.Red);
-                    //    graphics.DrawImage(image: _gameBoard.ToBitmap(),
-                    //       destRect: new Rectangle(0, 0, 3, 3),
-                    //        srcRect: new Rectangle((ant.GetLocation().X - 1), (ant.GetLocation().Y - 1), 3, 3),
-                    //        srcUnit: GraphicsUnit.Pixel);
-                    //    //I can use -1 as the left-most pixel of the board is 1,1
-                    //}
-
-
-
-                    Ant.Action ant_action = ant.Move(ant_vision); //TODO change ant_vision to array...
-                    Point location = ant.GetLocation();
-
-                    switch (ant_action)
-                    {
-                        default: //or Action.None
-                            {
-                                break;
-                            }
-
-                        case (Ant.Action.DropPheremone):
-                            {
-                                Point pheremone_location = location;
-                                pheremone_location.X--;
-                                pheremone_location.Y--;
-                                Pheremone ph = new Pheremone(pheremone_location,255,0.5); //TODO work out if there is a better way to do this.
-                                _gameBoard.addPheremone(ph);
-                                break;
-                            }
-                    }
-                    
-                    board.SetPixel(location.X, location.Y, Color.Purple);
-                }
-
-                PictureBox.Image = ResizeBitmapToPictureBox(board);
-                PictureBox.Refresh();
-            }
+            _control.Step(steps: 10);
         }
 
         #endregion
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            GenerateNewBoard new_board = new GenerateNewBoard(this);
+            new_board.ShowDialog();
+            _control = new ControlClass(_numberOfNormalAnts,_boardWidth, _boardHeight, _goalTiles);//TODO is this correct?
+
+            _control.BoardStepped += _control_BoardStepped;
+            //TODO draw the board?
+        }
     }
 }
